@@ -41,24 +41,34 @@ local function open_buffer()
 end
 
 local unrealEnginePath = '/home/wenhaoxiong/software/unreal/UnrealEngine-5.4.4-release/';
+local unrealEnginePathWin = '/mnt/c/Program Files/Epic Games/UE_5.4/'
 local unrealBuildToolPath = unrealEnginePath .. 'Engine/Binaries/DotNET/UnrealBuildTool/';
-local unrealProjectPath = '/mnt/c/Users/wenhaoxiong/Documents/Unreal Projects/';
+local unrealEditorPathWin = unrealEnginePathWin .. 'Engine/Binaries/Win64/';
+local unrealBuildToolPathWin = unrealEnginePathWin .. 'Engine/Binaries/DotNET/UnrealBuildTool/'
 
 function M.generateCommands(opts)
 
+    local checkResult = checkIsUnrealProject()
 
-    local uProjectFileName = vim.fn.glob('*.uproject')
-    local isUnrealProject = string.len(uProjectFileName) ~= 0
-    if isUnrealProject then
-        local unrealProjectName = string.gsub(uProjectFileName, ".uproject", "")
-        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. unrealProjectName .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
+
+    if checkResult.isUnrealProject then
+        local unrealProjectName = checkResult.unrealProjectName
+        local unrealProjectPath = checkResult.unrealProjectPath
+        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. "/" .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
 
         open_buffer();
 
         vim.fn.jobstart(cmd, {
             cwd = unrealBuildToolPath,
             on_exit = function ()
-                callback(unrealProjectPath .. unrealProjectName)
+                local cmdCallBack = 'cp ' .. '"' .. unrealEnginePath .. 'compile_commands.json" ' .. '"' .. unrealProjectPath .. '"';
+
+                vim.fn.jobstart(cmdCallBack, {
+                    cwd = unrealEnginePath,
+                    on_exit = function () end,
+                    on_stdout = log,
+                    on_stderr = log,
+                })
             end,
             on_stdout = log,
             on_stderr = log,
@@ -69,18 +79,57 @@ function M.generateCommands(opts)
 
 end
 
-function callback(projectPath)
-    print("callback start.")
-    local cmd = 'cp ' .. '\'' .. unrealEnginePath .. 'compile_commands.json\' ' .. '\'' .. projectPath .. '\'';
-    print(cmd)
+function M.buildAndRun(opts)
+    local checkResult = checkIsUnrealProject()
 
-    vim.fn.jobstart(cmd, {
-        cwd = unrealEnginePath,
-        on_exit = function () end,
-        on_stdout = function () end,
-        on_stderr = function () end,
-    })
+    if checkResult.isUnrealProject then
+        local unrealProjectPahtWinStyle = getWinStyleUnrealProjectPath(checkResult.unrealProjectPath)
+        local cmd = './UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPahtWinStyle .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
+
+        open_buffer();
+
+        vim.fn.jobstart(cmd, {
+            cwd = unrealBuildToolPathWin,
+            on_exit = function ()
+                local cmdRun = './UnrealEditor.exe "' .. getWinStyleUnrealProjectPath(checkResult.unrealProjectPath) .. checkResult.unrealProjectName .. '.uproject"'
+                vim.fn.jobstart(cmdRun, {
+                    cwd = unrealEditorPathWin,
+                    on_stdout = log,
+                    on_stderr = log,
+                })
+            end,
+            on_stdout = log,
+            on_stderr = log,
+        })
+
+
+    else
+        print("not a unreal project")
+    end
 end
 
+function getWinStyleUnrealProjectPath(unrealProjectPathLinuxStyle)
+        local unrealProjectPath = unrealProjectPathLinuxStyle
+        local unrealProjectPathWinStyle = string.gsub(unrealProjectPath, "/mnt/", "")
+        unrealProjectPathWinStyle = string.upper(string.sub(unrealProjectPathWinStyle, 0, 1)) .. ":" .. string.sub(unrealProjectPathWinStyle, 2)
+        return unrealProjectPathWinStyle
+end
+
+function checkIsUnrealProject()
+    local uProjectFileName = vim.fn.glob('*.uproject')
+    local isUnrealProject = string.len(uProjectFileName) ~= 0
+    local unrealProjectName
+    local unrealProjectPath = vim.fn.getcwd()
+
+    if isUnrealProject then
+        unrealProjectName = string.gsub(uProjectFileName, ".uproject", "")
+    end
+
+    return {
+        isUnrealProject = isUnrealProject,
+        unrealProjectPath = unrealProjectPath .. "/",
+        unrealProjectName = unrealProjectName,
+    }
+end
 
 return M;
