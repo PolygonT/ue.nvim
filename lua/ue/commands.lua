@@ -51,7 +51,7 @@ function M.generateCommands(opts)
     local isUnrealProject = string.len(uProjectFileName) ~= 0
     if isUnrealProject then
         local unrealProjectName = string.gsub(uProjectFileName, ".uproject", "")
-        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
+        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. unrealProjectName .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
 
         open_buffer();
 
