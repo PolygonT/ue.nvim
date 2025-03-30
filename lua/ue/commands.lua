@@ -42,30 +42,36 @@ end
 
 local unrealEnginePath = '/home/wenhaoxiong/software/unreal/UnrealEngine-5.4.4-release/';
 local unrealBuildToolPath = unrealEnginePath .. 'Engine/Binaries/DotNET/UnrealBuildTool/';
-local unrealProjectPath = '/mnt/c/Users/wenhaoxiong/Documents/Unreal Projects/MyProject/';
-local unrealProjectName = 'MyProject'
+local unrealProjectPath = '/mnt/c/Users/wenhaoxiong/Documents/Unreal Projects/';
 
 function M.generateCommands(opts)
 
-    local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
 
-    print(cmd)
+    local uProjectFileName = vim.fn.glob('*.uproject')
+    local isUnrealProject = string.len(uProjectFileName) ~= 0
+    if isUnrealProject then
+        local unrealProjectName = string.gsub(uProjectFileName, ".uproject", "")
+        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Linux';
 
-    open_buffer();
+        open_buffer();
 
-    vim.fn.jobstart(cmd, {
-        cwd = unrealBuildToolPath,
-        on_exit = callback,
-        on_stdout = log,
-        on_stderr = log,
-    })
-
+        vim.fn.jobstart(cmd, {
+            cwd = unrealBuildToolPath,
+            on_exit = function ()
+                callback(unrealProjectPath .. unrealProjectName)
+            end,
+            on_stdout = log,
+            on_stderr = log,
+        })
+    else
+        print("not a unreal project")
+    end
 
 end
 
-function callback()
+function callback(projectPath)
     print("callback start.")
-    local cmd = 'cp ' .. '\'' .. unrealEnginePath .. 'compile_commands.json\' ' .. '\'' .. unrealProjectPath .. '\'';
+    local cmd = 'cp ' .. '\'' .. unrealEnginePath .. 'compile_commands.json\' ' .. '\'' .. projectPath .. '\'';
     print(cmd)
 
     vim.fn.jobstart(cmd, {
