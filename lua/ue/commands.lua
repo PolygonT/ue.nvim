@@ -65,7 +65,9 @@ function M.generateCommands(opts)
 
                 vim.fn.jobstart(cmdCallBack, {
                     cwd = unrealEnginePath,
-                    on_exit = function () end,
+                    on_exit = function ()
+                        vim.cmd [[ LspRestart ]]
+                    end,
                     on_stdout = log,
                     on_stderr = log,
                 })
@@ -73,6 +75,32 @@ function M.generateCommands(opts)
             on_stdout = log,
             on_stderr = log,
         })
+
+    else
+        print("not a unreal project")
+    end
+
+
+end
+
+function M.build(opts)
+    local checkResult = checkIsUnrealProject()
+
+    if checkResult.isUnrealProject then
+        local unrealProjectPahtWinStyle = getWinStyleUnrealProjectPath(checkResult.unrealProjectPath)
+        local cmd = './UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPahtWinStyle .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
+
+        open_buffer();
+
+        vim.fn.jobstart(cmd, {
+            cwd = unrealBuildToolPathWin,
+            on_exit = function ()
+                M.generateCommands(opts)
+            end,
+            on_stdout = log,
+            on_stderr = log,
+        })
+
     else
         print("not a unreal project")
     end
@@ -97,6 +125,7 @@ function M.buildAndRun(opts)
                     on_stdout = log,
                     on_stderr = log,
                 })
+                M.generateCommands(opts)
             end,
             on_stdout = log,
             on_stderr = log,
@@ -106,6 +135,26 @@ function M.buildAndRun(opts)
     else
         print("not a unreal project")
     end
+end
+
+function M.printHeaders()
+    local method_name = 'textDocument/switchSourceHeader'
+    local bufnr = 0
+    local client = vim.lsp.get_clients({ bufnr = bufnr, name = 'clangd' })[1]
+    if not client then
+        return vim.notify(('method %s is not supported by any servers active on the current buffer'):format(method_name))
+    end
+    local params = vim.lsp.util.make_text_document_params(bufnr)
+    client.request(method_name, params, function(err, result)
+        if err then
+            error(tostring(err))
+        end
+        if not result then
+            vim.notify('corresponding file cannot be determined')
+            return
+        end
+        print(result)
+    end, bufnr)
 end
 
 function getWinStyleUnrealProjectPath(unrealProjectPathLinuxStyle)
