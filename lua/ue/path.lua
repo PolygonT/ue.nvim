@@ -1,11 +1,11 @@
 local M = {}
 local Versions = {}
 
-local unrealEnginePath = '/home/wenhaoxiong/software/unreal/UnrealEngine-5.4.4-release/';
-local unrealEnginePathWin = '/mnt/c/Program Files/Epic Games/UE_5.4/'
-local unrealBuildToolPath = unrealEnginePath .. 'Engine/Binaries/DotNET/UnrealBuildTool/';
-local unrealEditorPathWin = unrealEnginePathWin .. 'Engine/Binaries/Win64/';
-local unrealBuildToolPathWin = unrealEnginePathWin .. 'Engine/Binaries/DotNET/UnrealBuildTool/'
+-- local unrealEnginePath = '/home/wenhaoxiong/software/unreal/UnrealEngine-5.4.4-release/';
+-- local unrealEnginePathWin = '/mnt/c/Program Files/Epic Games/UE_5.4/'
+-- local unrealBuildToolPath = unrealEnginePath .. 'Engine/Binaries/DotNET/UnrealBuildTool/';
+-- local unrealEditorPathWin = unrealEnginePathWin .. 'Engine/Binaries/Win64/';
+-- local unrealBuildToolPathWin = unrealEnginePathWin .. 'Engine/Binaries/DotNET/UnrealBuildTool/'
 
 local unrealEditorPathSuffix = 'Engine/Binaries/Win64/'
 local unrealBuildToolPathSuffix = 'Engine/Binaries/DotNET/UnrealBuildTool/';
@@ -50,6 +50,16 @@ function M.getUnrealBuildToolPath()
     for _, x in pairs(Versions) do
         if x.version == getCurrentProjectVersion() then
             return x.path .. unrealBuildToolPathSuffix
+        end
+    end
+
+    return nil;
+end
+
+function M.getUnrealEnginePath()
+    for _, x in pairs(Versions) do
+        if x.version == getCurrentProjectVersion() then
+            return x.path
         end
     end
 
