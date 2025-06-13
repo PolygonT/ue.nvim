@@ -11,6 +11,10 @@ local unrealEditorPathSuffix = 'Engine/Binaries/Win64/'
 local unrealBuildToolPathSuffix = 'Engine/Binaries/DotNET/UnrealBuildTool/';
 
 local function getCurrentProjectVersion()
+    local uProjectFileName = vim.fn.glob('*.uproject')
+    local input = assert(io.open(uProjectFileName, "r"))
+    local json = input:read("*all")
+    P(json)
     return '5.6'
 end
 
