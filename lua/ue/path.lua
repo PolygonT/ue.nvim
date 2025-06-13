@@ -15,24 +15,6 @@ local function getCurrentProjectVersion()
 end
 
 function M.setUpVersionsConfig(opts)
-    opts = {
-        {
-            version = "5.5",
-            path = "test1"
-        },
-        {
-            version = "5.6",
-            path = "F:/EpicGames/UE_5.6/"
-        },
-    }
-    -- for i, x in pairs(opts) do
-    --     for key, path in pairs(x) do
-    --         local item = {}
-    --
-    --         table.insert(Versions, ve, path)
-    --         Versions.insert(version, path)
-    --     end
-    -- end
     Versions = opts
 end
 

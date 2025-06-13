@@ -1,4 +1,4 @@
-M = {}
+local M = {}
 
 local Path = require('ue.path')
 
@@ -56,7 +56,7 @@ function M.generateCommands(opts)
     if checkResult.isUnrealProject then
         local unrealProjectName = checkResult.unrealProjectName
         local unrealProjectPath = checkResult.unrealProjectPath
-        local cmd = './UnrealBuildTool -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath .. "/" .. unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Win64';
+        local cmd = 'UnrealBuildTool.exe -mode=GenerateClangDatabase -NoExecCodeGenActions -project="' .. unrealProjectPath ..  unrealProjectName .. '.uproject" -game  -engine ' .. unrealProjectName .. 'Editor DebugGame Win64';
 
         open_buffer();
         local unrealEnginePath = Path.getUnrealEnginePath()
@@ -91,7 +91,7 @@ function M.build(opts)
 
     if checkResult.isUnrealProject then
         local unrealProjectPath = checkResult.unrealProjectPath
-        local cmd = './UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPath .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
+        local cmd = 'UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPath .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
 
         open_buffer();
 
@@ -115,7 +115,7 @@ function M.buildAndRun(opts)
 
     if checkResult.isUnrealProject then
         local unrealProjectPath = checkResult.unrealProjectPath
-        local cmd = './UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPath .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
+        local cmd = 'UnrealBuildTool.exe ' .. checkResult.unrealProjectName .. 'Editor Win64 Development -Project="' .. unrealProjectPath .. checkResult.unrealProjectName .. '.uproject" -WaitMutex -FromMsBuild -architecture=x64'
 
         open_buffer();
 
@@ -123,9 +123,9 @@ function M.buildAndRun(opts)
         vim.fn.jobstart(cmd, {
             cwd = Path.getUnrealBuildToolPath(),
             on_exit = function ()
-                local cmdRun = './UnrealEditor.exe "' .. checkResult.unrealProjectPath .. checkResult.unrealProjectName .. '.uproject"'
+                local cmdRun = 'UnrealEditor.exe "' .. checkResult.unrealProjectPath .. checkResult.unrealProjectName .. '.uproject"'
                 vim.fn.jobstart(cmdRun, {
-                    cwd = Path.getUnrealBuildToolPath(),
+                    cwd = Path.getUnrealEditorPath(),
                     on_stdout = log,
                     on_stderr = log,
                 })
@@ -180,7 +180,7 @@ function checkIsUnrealProject()
 
     return {
         isUnrealProject = isUnrealProject,
-        unrealProjectPath = unrealProjectPath .. "/",
+        unrealProjectPath = unrealProjectPath .. "\\",
         unrealProjectName = unrealProjectName,
     }
 end
