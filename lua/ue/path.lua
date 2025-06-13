@@ -9,13 +9,19 @@ local Versions = {}
 
 local unrealEditorPathSuffix = 'Engine/Binaries/Win64/'
 local unrealBuildToolPathSuffix = 'Engine/Binaries/DotNET/UnrealBuildTool/';
+local currentProjectVersion = nil
 
 local function getCurrentProjectVersion()
+    if currentProjectVersion ~= nil then
+        return currentProjectVersion
+    end
+
     local uProjectFileName = vim.fn.glob('*.uproject')
     local input = assert(io.open(uProjectFileName, "r"))
-    local json = input:read("*all")
-    P(json)
-    return '5.6'
+    local jsonStr = input:read("*all")
+    local jsonTable = vim.json.decode(jsonStr)
+    currentProjectVersion = jsonTable.EngineAssociation
+    return currentProjectVersion
 end
 
 function M.setUpVersionsConfig(opts)
